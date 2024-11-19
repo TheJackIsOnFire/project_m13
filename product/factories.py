@@ -1,20 +1,22 @@
-import factory # type: ignore
+import factory
 
 from product.models import Product
 from product.models import Category
 
+
 class CategoryFactory(factory.django.DjangoModelFactory):
     title = factory.Faker('pystr')
-    slug = factory.Faker('slug')
+    slug = factory.Faker('pystr')
     description = factory.Faker('pystr')
     active = factory.Iterator([True, False])
 
     class Meta:
         model = Category
 
+
 class ProductFactory(factory.django.DjangoModelFactory):
     price = factory.Faker('pyint')
-    category = factory.SubFactory(CategoryFactory)
+    category = factory.LazyAttribute(CategoryFactory)
     title = factory.Faker('pystr')
 
     @factory.post_generation
@@ -28,3 +30,4 @@ class ProductFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Product
+
