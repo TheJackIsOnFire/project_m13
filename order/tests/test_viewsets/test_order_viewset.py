@@ -2,6 +2,7 @@ import json
 
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
+from rest_framework.authtoken.models import Token
 
 from django.urls import reverse
 
@@ -20,20 +21,28 @@ class TestOrderViewSet(APITestCase):
         self.product = ProductFactory(title='mouse', price=100, category=[self.category])
         self.order = OrderFactory(product=[self.product])
 
+        self.user = UserFactory() #added
+        token = Token.objects.create(user=self.user) #added
+        token.save() #added
+
     def test_order(self):
+        token = Token.objects.get(user__username=self.user.username) #added
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key) #added
         response = self.client.get(
             reverse('order-list', kwargs={'version': 'v1'})
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        order_data = json.loads(response.content)[0]
-        self.assertEqual(order_data['product'][0]['title'], self.product.title)
-        self.assertEqual(order_data['product'][0]['price'], self.product.price)
-        self.assertEqual(order_data['product'][0]['active'], self.product.active)
-        self.assertEqual(order_data['product'][0]['category'][0]['title'], self.category.title)
+        order_data = json.loads(response.content)
+        self.assertEqual(order_data['results'][0]['product'][0]['title'], self.product.title)
+        self.assertEqual(order_data['results'][0]['product'][0]['price'], self.product.price)
+        self.assertEqual(order_data['results'][0]['product'][0]['active'], self.product.active)
+        self.assertEqual(order_data['results'][0]['product'][0]['category'][0]['title'], self.category.title)
 
     def test_create_order(self):
+        token = Token.objects.get(user__username=self.user.username)#added
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)#added
         user = UserFactory()
         product = ProductFactory()
         data = json.dumps({
