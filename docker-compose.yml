@@ -9,6 +9,8 @@ services:
       - POSTGRES_USER=mysite_dev
       - POSTGRES_PASSWORD=mysite_dev
       - POSTGRES_DB=mysite_dev_db
+    networks:
+      - backend 
   web:
     build: .
     command: python3 manage.py runserver 0.0.0.0:8000
@@ -20,6 +22,12 @@ services:
       - ./.env.dev
     depends_on:
       - db
+    networks:
+        - backend   
 
 volumes:
   postgres_data:
+
+networks:
+  backend:
+    driver: bridge  
